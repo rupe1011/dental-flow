@@ -1,0 +1,22 @@
+# Datos reales del CESFAM
+data/*.xlsx
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Dependencias
+node_modules/
+
+# Build
+.next/
+out/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Sistema
+.DS_Store
