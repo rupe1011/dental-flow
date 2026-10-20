@@ -1,0 +1,127 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profesional {
+  id     Int     @id @default(autoincrement())
+  nombre String  @unique
+  tipo   String
+  sector String?
+  activo Boolean @default(true)
+
+  horarios          Horario[]
+  actividades       Actividad[]
+  ausencias         Ausencia[]
+  permisos          Permiso[]
+  restricciones     RestriccionCobertura[]
+  responsabilidades Responsabilidad[]
+
+  reemplazosComoAusente   Reemplazo[] @relation("ReemplazoAusente")
+  reemplazosComoReemplazo Reemplazo[] @relation("ReemplazoCandidato")
+}
+
+model Periodo {
+  id   Int @id @default(autoincrement())
+  año  Int
+  mes  Int
+
+  horarios    Horario[]
+  actividades Actividad[]
+
+  @@unique([año, mes])
+}
+
+model Horario {
+  id            Int    @id @default(autoincrement())
+  profesionalId Int
+  periodoId     Int
+  entrada       String
+  salida        String
+
+  profesional Profesional @relation(fields: [profesionalId], references: [id])
+  periodo     Periodo     @relation(fields: [periodoId], references: [id])
+
+  @@unique([profesionalId, periodoId])
+}
+
+model Actividad {
+  id            Int      @id @default(autoincrement())
+  periodoId     Int
+  profesionalId Int?
+  fecha         DateTime
+  horaInicio    String
+  horaFin       String
+  nombre        String
+  lugar         String?
+
+  periodo     Periodo      @relation(fields: [periodoId], references: [id])
+  profesional Profesional? @relation(fields: [profesionalId], references: [id])
+  reemplazo   Reemplazo?
+}
+
+model Ausencia {
+  id            Int      @id @default(autoincrement())
+  profesionalId Int
+  fechaInicio   DateTime
+  fechaFin      DateTime
+  motivo        String
+
+  profesional Profesional @relation(fields: [profesionalId], references: [id])
+}
+
+model Permiso {
+  id            Int      @id @default(autoincrement())
+  profesionalId Int
+  tipo          String
+  fechaInicio   DateTime
+  fechaFin      DateTime
+  estado        String
+
+  profesional Profesional @relation(fields: [profesionalId], references: [id])
+}
+
+model RestriccionCobertura {
+  id            Int     @id @default(autoincrement())
+  profesionalId Int
+  tipo          String
+  valor         String
+  permite       Boolean @default(false)
+  activo        Boolean @default(true)
+
+  profesional Profesional @relation(fields: [profesionalId], references: [id])
+}
+
+model Responsabilidad {
+  id            Int     @id @default(autoincrement())
+  profesionalId Int
+  nombre        String
+  frecuencia    String?
+  activo        Boolean @default(true)
+
+  profesional Profesional @relation(fields: [profesionalId], references: [id])
+}
+
+model Reemplazo {
+  id Int @id @default(autoincrement())
+
+  actividadId Int
+
+  profesionalAusenteId   Int
+  profesionalReemplazoId Int
+
+  estado            String   @default("CONFIRMADO")
+  fechaConfirmacion DateTime @default(now())
+
+  actividad Actividad @relation(fields: [actividadId], references: [id])
+
+  profesionalAusente Profesional @relation("ReemplazoAusente", fields: [profesionalAusenteId], references: [id])
+
+  profesionalReemplazo Profesional @relation("ReemplazoCandidato", fields: [profesionalReemplazoId], references: [id])
+
+  @@unique([actividadId])
+}
